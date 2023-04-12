@@ -19,30 +19,24 @@ rating = db.rating
 # def index():
 #     return render_template('index.html')
 
-@app.route('/', methods=('POST'))
-def index():
-    if request.method=='POST':
-        user = request.form['user_id']
-        anime = request.form['anime_id']
-        rating = request.form['rating']
+@app.route("/create-rating", methods=['POST'])
+def create_rating():
+    new_rating = request.get_json()
+    check_rating = rating.find_one({"user_id": new_rating["user_id"],"anime_id": new_rating["anime_id"]}) # check if this user already rated this anime
+    if not check_rating:
+        rating.insert_one(new_rating)
+        json_response =json.loads(json_util.dumps(new_rating))
+        print(json_response)
+        return json_response, 201
+    else:
+        rating.update_one({"user_id": new_rating["user_id"],"anime_id": new_rating["anime_id"]}, {"$set": {"rating": new_rating["rating"]}})
+        json_response =json.loads(json_util.dumps(new_rating))
+        print(json_response)
+        return json_response, 201
 
-        #content = request.form['content']
-        #myquery = { "content": content }
-        #degree = request.form['degree']
-        #newvalues = { "$set": { "degree": degree } }
-
-        """ mydoc = todos.find_one(myquery)
-        print("mydoc: ", mydoc)
-        if (mydoc == None):
-            todos.insert_one({'content': content, 'degree': degree})
-        else:
-            todos.update_one(myquery, newvalues) """
-        mydoc = {'user_id': user, 'anime_id': anime, 'rating': rating}
-        todos.insert_one(mydoc)
-        return json.loads(json_util.dumps(mydoc))
-    #return "rqting creqted"
-
-@app.route('/get-rating', methods=('GET'))
+@app.route("/get-rating", methods=['GET'])
+@jwt_required()
 def get_rating():
-    if request.method=='GET':
-        
+    ret = rating.find()
+    return jsonify(ret), 200
+
