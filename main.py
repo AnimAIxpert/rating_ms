@@ -1,23 +1,16 @@
-from flask import Flask, jsonify, render_template, request, url_for, redirect
+# python3 -m flask --app app run
+from flask import Flask, request
 import json
-from pymongo import MongoClient
 from bson import json_util
+from mongoClient import client
 app = Flask(__name__)
 
-client = MongoClient('localhost', 27017)
+db = client["animaixpert"]
+rating_collection = db["rating"]
 
-db = client.flask_db
-rating_collection = db.rating
-
-
-
-# @app.route("/")
-# def hello_world():
-#     return "<p>Hello, World!</p>"
-
-# @app.route('/', methods=('GET', 'POST'))
-# def index():
-#     return render_template('index.html')
+@app.route("/")
+def hello_world():
+    return "<p>Rating MS</p>"
 
 @app.route("/create-rating", methods=['POST'])
 def create_rating():
@@ -42,4 +35,3 @@ def get_rating():
         rating.pop('_id')
         ans.append(rating)
     return ans, 200
-
