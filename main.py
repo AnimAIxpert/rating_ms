@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, jsonify, render_template, request, url_for, redirect
 import json
 from pymongo import MongoClient
 from bson import json_util
@@ -7,7 +7,7 @@ app = Flask(__name__)
 client = MongoClient('localhost', 27017)
 
 db = client.flask_db
-rating = db.rating
+rating_collection = db.rating
 
 
 
@@ -22,21 +22,24 @@ rating = db.rating
 @app.route("/create-rating", methods=['POST'])
 def create_rating():
     new_rating = request.get_json()
-    check_rating = rating.find_one({"user_id": new_rating["user_id"],"anime_id": new_rating["anime_id"]}) # check if this user already rated this anime
+    check_rating = rating_collection.find_one({"user_id": new_rating["user_id"],"anime_id": new_rating["anime_id"]}) # check if this user already rated this anime
     if not check_rating:
-        rating.insert_one(new_rating)
+        rating_collection.insert_one(new_rating)
         json_response =json.loads(json_util.dumps(new_rating))
         print(json_response)
         return json_response, 201
     else:
-        rating.update_one({"user_id": new_rating["user_id"],"anime_id": new_rating["anime_id"]}, {"$set": {"rating": new_rating["rating"]}})
+        rating_collection.update_one({"user_id": new_rating["user_id"],"anime_id": new_rating["anime_id"]}, {"$set": {"rating": new_rating["rating"]}})
         json_response =json.loads(json_util.dumps(new_rating))
         print(json_response)
         return json_response, 201
 
 @app.route("/get-rating", methods=['GET'])
-@jwt_required()
 def get_rating():
-    ret = rating.find()
-    return jsonify(ret), 200
+    ret = rating_collection.find()
+    ans = []
+    for rating in ret:
+        rating.pop('_id')
+        ans.append(rating)
+    return ans, 200
 
