@@ -35,3 +35,27 @@ def get_rating():
         rating.pop('_id')
         ans.append(rating)
     return ans, 200
+
+@app.route("/get-rating-by-ids", methods=['GET'])
+def get_rating_by_user():
+    user_id = request.args.get('user_id')
+    anime_id = request.args.get('anime_id')
+    print(int(anime_id))
+    ret = rating_collection.find({"user_id": user_id})
+    # ret = rating_collection.find({"anime_id": anime_id})
+    ans = []
+    for rating in ret:
+        if rating["anime_id"] == int(anime_id):
+            rating.pop('_id')
+            ans.append(rating)
+    return ans, 200
+
+@app.route("/get-ratings-by-user", methods=['GET'])
+def get_ratings_by_user_id():
+    user_id = request.args.get('user_id')
+    ret = rating_collection.find({"user_id": user_id})
+    ans = []
+    for rating in ret:
+        rating.pop('_id')
+        ans.append(rating)
+    return ans, 200
